@@ -3,6 +3,7 @@ import { AuthModule } from './auth/auth.module';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
+import { EmployeesModule } from './employees/employees.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { PrismaModule } from './prisma/prisma.module';
       envFilePath: ['.env.development', '.env.prod'],
     }),
     PrismaModule,
+    EmployeesModule,
   ],
 })
 export class AppModule {}

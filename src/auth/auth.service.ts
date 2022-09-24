@@ -10,7 +10,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon2 from 'argon2';
 import { AuthDto } from './dto/auth.dto';
 import { Auth } from '@prisma/client';
-import moment from 'moment';
 
 @Injectable()
 export class AuthService {
