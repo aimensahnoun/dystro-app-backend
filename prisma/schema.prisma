@@ -31,12 +31,24 @@ model Admin {
 }
 
 model Company {
-  id                  String   @id @unique @default(uuid())
+  id                  String     @id @unique @default(uuid())
   name                String
-  type                String   @default("company")
-  is_profile_complete Boolean  @default(false)
-  created_at          DateTime @default(now())
+  type                String     @default("company")
+  is_profile_complete Boolean    @default(false)
+  created_at          DateTime   @default(now())
   currency            String
   owner_id            String
-  owner               Admin    @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  owner               Admin      @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  Employee            Employee[]
+}
+
+model Employee {
+  id                  String   @id @unique @default(uuid())
+  first_name          String
+  last_name           String
+  email               String   @unique
+  is_profile_complete Boolean  @default(false)
+  created_at          DateTime @default(now())
+  company_id          String
+  company             Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
 }

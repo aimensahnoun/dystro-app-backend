@@ -24,6 +24,18 @@ export class AdminService {
     });
   }
 
+  async getAdmin(admin: Admin, id: string) {
+    return await this.prisma.admin.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
+  async getMe(admin: Admin) {
+    console.log(admin);
+  }
+
   isProfileComplete(dto: AdminDto): boolean {
     return dto.email !== '' && dto.first_name !== '' && dto.last_name !== '';
   }
