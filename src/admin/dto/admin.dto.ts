@@ -1,18 +1,19 @@
+import { Transform, TransformFnParams } from 'class-transformer';
 import { Contains, IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 
 export class AdminDto {
   @IsNotEmpty()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsEmail()
   email: string;
 
-  @Contains('admin' || 'employee')
-  type: 'admin' | 'employee';
-
   @IsNotEmpty()
   @MinLength(2)
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   first_name: string;
 
   @IsNotEmpty()
   @MinLength(2)
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   last_name: string;
 }
