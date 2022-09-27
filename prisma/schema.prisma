@@ -27,7 +27,7 @@ model Admin {
   is_profile_complete Boolean   @default(false)
   created_at          DateTime  @default(now())
   default_language    String    @default("en")
-  Company             Company[]
+  company             Company[]
 }
 
 model Company {
@@ -39,7 +39,7 @@ model Company {
   currency            String
   owner_id            String
   owner               Admin      @relation(fields: [owner_id], references: [id], onDelete: Cascade)
-  Employee            Employee[]
+  employees            Employee[]
 }
 
 model Employee {
