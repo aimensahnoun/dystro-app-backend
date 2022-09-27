@@ -11,9 +11,32 @@ datasource db {
 }
 
 model Auth {
-  id         String   @id @unique @default(uuid())
   email      String   @unique
   hash       String
+  type       String   @default("admin")
   created_at DateTime @default(now())
   last_login DateTime @default(now())
+}
+
+model Admin {
+  id                  String    @id @unique @default(uuid())
+  email               String    @unique
+  type                String    @default("admin")
+  first_name          String
+  last_name           String
+  is_profile_complete Boolean   @default(false)
+  created_at          DateTime  @default(now())
+  default_language    String    @default("en")
+  Company             Company[]
+}
+
+model Company {
+  id                  String   @id @unique @default(uuid())
+  name                String
+  type                String   @default("company")
+  is_profile_complete Boolean  @default(false)
+  created_at          DateTime @default(now())
+  currency            String
+  owner_id            String
+  owner               Admin    @relation(fields: [owner_id], references: [id], onDelete: Cascade)
 }

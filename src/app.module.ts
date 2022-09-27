@@ -4,6 +4,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { EmployeesModule } from './employees/employees.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { EmployeesModule } from './employees/employees.module';
     }),
     PrismaModule,
     EmployeesModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

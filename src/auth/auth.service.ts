@@ -26,14 +26,32 @@ export class AuthService {
 
       const passwordHash = await argon2.hash(dto.password);
 
-      const user = await this.prisma.auth.create({
+      const [user, admin] = await this.prisma.$transaction([
+        this.prisma.auth.create({
+          data: {
+            email: dto.email,
+            hash: passwordHash,
+            type: 'admin',
+          },
+        }),
+        this.prisma.admin.create({
+          data: {
+            email: dto.email,
+            first_name: '',
+            last_name: '',
+          },
+        }),
+      ]);
+
+      await this.prisma.company.create({
         data: {
-          email: dto.email,
-          hash: passwordHash,
+          name: '',
+          currency: '',
+          owner_id: admin.id,
         },
       });
 
-      const jwt = await this.signToken(user.id, user.email);
+      const jwt = await this.signToken(user.email, 'admin');
 
       delete user.hash;
 
@@ -68,13 +86,13 @@ export class AuthService {
 
       if (!passwordMatch) throw new NotFoundException('Invalid credentials');
 
-      const jwt = await this.signToken(user.id, user.email);
+      const jwt = await this.signToken(user.email, user.type);
 
       delete user.hash;
 
       await this.prisma.auth.update({
         where: {
-          id: user.id,
+          email: user.email,
         },
         data: {
           last_login: new Date(),
@@ -92,14 +110,13 @@ export class AuthService {
     }
   }
 
-  signToken(userId: string, email: string): Promise<string> {
+  signToken(email: string, type: string): Promise<string> {
     const payload = {
-      sub: userId,
       email,
+      type,
     };
 
     return this.jwt.signAsync(payload, {
-      expiresIn: '15m',
       secret: this.config.get('JWT_SECRET'),
     });
   }
