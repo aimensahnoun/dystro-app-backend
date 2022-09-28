@@ -27,6 +27,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           company: true,
         },
       });
+    } else {
+      response = await this.prisma.employee.findUnique({
+        where: {
+          email: payload.email,
+        },
+        include: {
+          company: true,
+        },
+      });
     }
 
     return response;

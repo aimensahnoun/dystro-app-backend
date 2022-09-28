@@ -19,15 +19,15 @@ model Auth {
 }
 
 model Admin {
-  id                  String    @id @unique @default(uuid())
-  email               String    @unique
-  type                String    @default("admin")
+  id                  String   @id @unique @default(uuid())
+  email               String   @unique
+  type                String   @default("admin")
   first_name          String
   last_name           String
-  is_profile_complete Boolean   @default(false)
-  created_at          DateTime  @default(now())
-  default_language    String    @default("en")
-  company             Company[]
+  is_profile_complete Boolean  @default(false)
+  created_at          DateTime @default(now())
+  default_language    String   @default("en")
+  company             Company?
 }
 
 model Company {
@@ -37,9 +37,9 @@ model Company {
   is_profile_complete Boolean    @default(false)
   created_at          DateTime   @default(now())
   currency            String
-  owner_id            String
+  owner_id            String     @unique
   owner               Admin      @relation(fields: [owner_id], references: [id], onDelete: Cascade)
-  employees            Employee[]
+  employees           Employee[]
 }
 
 model Employee {
@@ -49,6 +49,7 @@ model Employee {
   email               String   @unique
   is_profile_complete Boolean  @default(false)
   created_at          DateTime @default(now())
+  type                String   @default("employee")
   company_id          String
   company             Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
 }
