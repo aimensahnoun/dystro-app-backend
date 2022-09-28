@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -49,5 +50,10 @@ export class EmployeesController {
     @Body() dto: EmployeeDto,
   ) {
     return this.employee.updateEmployeeById(admin, id, dto);
+  }
+
+  @Delete(':id')
+  deleteEmployeeById(@GetUser() admin, @Param('id') id: string) {
+    return this.employee.deleteEmployee(admin, id);
   }
 }

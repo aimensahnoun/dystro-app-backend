@@ -16,10 +16,10 @@ export class EmployeesService {
   async createEmployee(admin: any, dto: NewEmployeeDto) {
     try {
       if (admin.type !== 'admin')
-        return new UnauthorizedException('Only admins are allowed');
+        throw new UnauthorizedException('Only admins are allowed');
 
       if (!admin.is_profile_complete)
-        return new UnauthorizedException('Please complete your profile first');
+        throw new UnauthorizedException('Please complete your profile first');
 
       const passwordHash = await argon2.hash(dto.password);
 
@@ -58,13 +58,13 @@ export class EmployeesService {
     dto: EmployeeDto,
   ) {
     if (user.type !== 'employee')
-      return new UnauthorizedException('Only employees are allowed');
+      throw new UnauthorizedException('Only employees are allowed');
 
     if (dto.email !== user.email) {
       const emailExists = await this.prisma.auth.findUnique({
         where: { email: dto.email },
       });
-      if (emailExists) return new UnauthorizedException('Email already exists');
+      if (emailExists) throw new UnauthorizedException('Email already exists');
     }
 
     const [newAuth, newEmployee] = await this.prisma.$transaction([
@@ -88,14 +88,14 @@ export class EmployeesService {
 
   getEmployee(user: Employee) {
     if (user.type !== 'employee')
-      return new UnauthorizedException('Only employees are allowed');
+      throw new UnauthorizedException('Only employees are allowed');
 
     return user;
   }
 
   async getEmployees(admin: any) {
     if (admin.type !== 'admin')
-      return new UnauthorizedException('Only admins are allowed');
+      throw new UnauthorizedException('Only admins are allowed');
 
     return this.prisma.employee.findMany({
       where: { company_id: admin.company.id },
@@ -103,7 +103,7 @@ export class EmployeesService {
   }
   async getEmployeeById(admin: any, id: string) {
     if (admin.type !== 'admin')
-      return new UnauthorizedException('Only admins are allowed');
+      throw new UnauthorizedException('Only admins are allowed');
 
     const employee = await this.prisma.employee.findUnique({
       where: { id },
@@ -111,7 +111,7 @@ export class EmployeesService {
     });
 
     if (employee.company_id !== admin.company.id)
-      return new UnauthorizedException(
+      throw new UnauthorizedException(
         'You are not allowed to view this employee',
       );
 
@@ -123,13 +123,20 @@ export class EmployeesService {
 
     const user = await this.getEmployeeById(admin, id);
 
-    if (user instanceof UnauthorizedException)
-      return new UnauthorizedException();
-
     return this.updateEmployee(user, dto);
   }
 
-  deleteEmployee() {
-    return 'This action removes an employee';
+  async deleteEmployee(admin: any, id: string) {
+    if (admin.type !== 'admin')
+      throw new UnauthorizedException('Only admins are allowed');
+
+    const user = await this.getEmployeeById(admin, id);
+
+    await this.prisma.employee.update({
+      where: { id },
+      data: { is_active: false },
+    });
+
+    return { message: 'Employee deleted successfully' };
   }
 }

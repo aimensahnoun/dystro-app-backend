@@ -51,5 +51,6 @@ model Employee {
   created_at          DateTime @default(now())
   type                String   @default("employee")
   company_id          String
+  is_active           Boolean  @default(true)
   company             Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
 }

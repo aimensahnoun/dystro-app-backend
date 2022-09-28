@@ -80,6 +80,17 @@ export class AuthService {
         },
       });
 
+      if (user.type === 'employee') {
+        const employee = await this.prisma.employee.findUnique({
+          where: {
+            email: dto.email,
+          },
+        });
+
+        if (!employee.is_active)
+          throw new NotFoundException('User Has been deactivated');
+      }
+
       if (!user) throw new NotFoundException('User does not exist');
 
       const passwordMatch = await argon2.verify(user.hash, dto.password);
