@@ -16,6 +16,7 @@ model Auth {
   type       String   @default("admin")
   created_at DateTime @default(now())
   last_login DateTime @default(now())
+  TOTP       TOTP[]
 }
 
 model Admin {
@@ -53,4 +54,14 @@ model Employee {
   company_id          String
   is_active           Boolean  @default(true)
   company             Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+}
+
+model TOTP {
+  id         String   @id @unique @default(uuid())
+  token      String
+  created_at DateTime @default(now())
+  user_id    String   @unique
+  verified   Boolean  @default(false)
+  expired    Boolean  @default(false)
+  user       Auth     @relation(fields: [user_id], references: [email], onDelete: Cascade)
 }

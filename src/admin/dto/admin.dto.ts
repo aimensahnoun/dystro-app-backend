@@ -17,3 +17,10 @@ export class AdminDto {
   @Transform(({ value }: TransformFnParams) => value?.trim())
   last_name: string;
 }
+
+export class AdminRegisterDto extends AdminDto {
+  @IsNotEmpty()
+  @MinLength(6)
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  password: string;
+}

@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -8,9 +9,15 @@ import { JwtService } from '@nestjs/jwt';
 import { Logger } from 'nestjs-pino';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon2 from 'argon2';
-import { AuthDto } from './dto/auth.dto';
+import {
+  AuthDto,
+  ChangePasswordDto,
+  ForgotPasswordDto,
+  VerifyPasswordDto,
+} from './dto/auth.dto';
 import { Auth } from '@prisma/client';
-
+import { AdminRegisterDto } from 'src/admin/dto/admin.dto';
+import { totp } from 'otplib';
 @Injectable()
 export class AuthService {
   constructor(
@@ -20,7 +27,9 @@ export class AuthService {
     private jwt: JwtService,
   ) {}
 
-  async register(dto: AuthDto): Promise<{ user: Auth; token: string }> {
+  async register(
+    dto: AdminRegisterDto,
+  ): Promise<{ user: Auth; token: string }> {
     try {
       this.logger.log('AUTH HELLO WORLD');
 
@@ -37,8 +46,8 @@ export class AuthService {
         this.prisma.admin.create({
           data: {
             email: dto.email,
-            first_name: '',
-            last_name: '',
+            first_name: dto.first_name,
+            last_name: dto.last_name,
           },
         }),
       ]);
@@ -117,6 +126,130 @@ export class AuthService {
     } catch (err) {
       this.logger.error(err);
 
+      throw new InternalServerErrorException(err.stack);
+    }
+  }
+
+  async generateForgotPasswordToken(dto: ForgotPasswordDto): Promise<string> {
+    try {
+      const doesUserExist = await this.prisma.auth.findUnique({
+        where: {
+          email: dto.email,
+        },
+      });
+
+      if (!doesUserExist) throw new NotFoundException('User does not exist');
+
+      const doesTotpExist = await this.prisma.tOTP.findUnique({
+        where: {
+          user_id: dto.email,
+        },
+      });
+
+      if (doesTotpExist) throw new ForbiddenException('Token already exists');
+
+      const totpSecret = this.config.get('TOTP_SECRET');
+
+      const token = totp.generate(totpSecret);
+
+      const totpDb = await this.prisma.tOTP.create({
+        data: {
+          token: token,
+          user_id: doesUserExist.email,
+        },
+      });
+
+      setTimeout(async () => {
+        await this.prisma.tOTP.update({
+          where: {
+            id: totpDb.id,
+          },
+          data: {
+            expired: true,
+          },
+        });
+      }, 180000);
+
+      return token;
+    } catch (err) {
+      this.logger.error(err);
+      throw new InternalServerErrorException(err.stack);
+    }
+  }
+
+  async verifyForgotPasswordToken(dto: VerifyPasswordDto): Promise<boolean> {
+    try {
+      const doesTotpExist = await this.prisma.tOTP.findFirst({
+        where: {
+          user_id: dto.email,
+          AND: {
+            token: dto.token,
+          },
+        },
+      });
+
+      if (!doesTotpExist) throw new NotFoundException('Invalid Token');
+
+      if (doesTotpExist.expired) {
+        await this.prisma.tOTP.delete({
+          where: {
+            id: doesTotpExist.id,
+          },
+        });
+
+        throw new ForbiddenException('Expired Token');
+      }
+
+      await this.prisma.tOTP.update({
+        where: {
+          id: doesTotpExist.id,
+        },
+        data: {
+          verified: true,
+        },
+      });
+
+      return true;
+    } catch (err) {
+      this.logger.error(err);
+      throw new InternalServerErrorException(err.stack);
+    }
+  }
+
+  async changeForgotPassword(dto: ChangePasswordDto): Promise<boolean> {
+    try {
+      const isVerifiedTotp = await this.prisma.tOTP.findFirst({
+        where: {
+          user_id: dto.email,
+          AND: {
+            verified: true,
+          },
+        },
+      });
+
+      if (!isVerifiedTotp)
+        throw new NotFoundException('No verified token found');
+
+      const hash = await argon2.hash(dto.password);
+
+      const [newAuth, deletedToken] = await this.prisma.$transaction([
+        this.prisma.auth.update({
+          where: {
+            email: dto.email,
+          },
+          data: {
+            hash,
+          },
+        }),
+        this.prisma.tOTP.delete({
+          where: {
+            id: isVerifiedTotp.id,
+          },
+        }),
+      ]);
+
+      return true;
+    } catch (err) {
       throw new InternalServerErrorException(err.stack);
     }
   }
