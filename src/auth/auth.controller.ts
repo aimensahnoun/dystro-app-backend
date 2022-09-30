@@ -1,4 +1,11 @@
-import { Body, Controller, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   AuthDto,
@@ -10,6 +17,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Auth } from '@prisma/client';
 import { AdminRegisterDto } from 'src/admin/dto/admin.dto';
+import { STATUS_CODES } from 'http';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +35,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   login(@Body() dto: AuthDto): Promise<{ user: Auth; token: string }> {
     return this.authService.login(dto);
   }
