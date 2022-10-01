@@ -5,7 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { EmployeesModule } from './employees/employees.module';
 import { AdminModule } from './admin/admin.module';
-
+import { EventEmitterModule } from '@nestjs/event-emitter';
 @Module({
   imports: [
     AuthModule,
@@ -13,6 +13,7 @@ import { AdminModule } from './admin/admin.module';
     ConfigModule.forRoot({
       envFilePath: ['.env.development', '.env.prod'],
     }),
+    EventEmitterModule.forRoot(),
     PrismaModule,
     EmployeesModule,
     AdminModule,

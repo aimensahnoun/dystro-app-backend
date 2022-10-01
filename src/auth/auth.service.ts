@@ -18,6 +18,11 @@ import {
 import { Auth } from '@prisma/client';
 import { AdminRegisterDto } from 'src/admin/dto/admin.dto';
 import { totp } from 'otplib';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { TotpGeneratedEvent } from './events/events';
+import * as SendGrid from '@sendgrid/mail';
+import { TOTP_MESSAGE } from 'src/consts/send-grid';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -25,7 +30,10 @@ export class AuthService {
     private prisma: PrismaService,
     private config: ConfigService,
     private jwt: JwtService,
-  ) {}
+    private eventEmitter: EventEmitter2,
+  ) {
+    SendGrid.setApiKey(this.config.get('SEND_GRID'));
+  }
 
   async register(
     dto: AdminRegisterDto,
@@ -169,6 +177,11 @@ export class AuthService {
         },
       });
 
+      this.eventEmitter.emit(
+        'totp.generated',
+        new TotpGeneratedEvent(dto.email, token),
+      );
+
       setTimeout(async () => {
         const doesItStillExist = await this.prisma.tOTP.findUnique({
           where: {
@@ -273,6 +286,13 @@ export class AuthService {
     } catch (err) {
       throw new InternalServerErrorException(err.stack);
     }
+  }
+
+  @OnEvent('totp.generated')
+  async sendTotpEmail(event: TotpGeneratedEvent) {
+    const { email, token } = event;
+
+    await SendGrid.send(TOTP_MESSAGE(token, email));
   }
 
   signToken(email: string, type: string): Promise<string> {
