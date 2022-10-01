@@ -60,7 +60,7 @@ model TOTP {
   id         String   @id @unique @default(uuid())
   token      String
   created_at DateTime @default(now())
-  user_id    String   @unique
+  user_id    String   
   verified   Boolean  @default(false)
   expired    Boolean  @default(false)
   user       Auth     @relation(fields: [user_id], references: [email], onDelete: Cascade)

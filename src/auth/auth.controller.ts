@@ -17,7 +17,6 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Auth } from '@prisma/client';
 import { AdminRegisterDto } from 'src/admin/dto/admin.dto';
-import { STATUS_CODES } from 'http';
 
 @Controller('auth')
 export class AuthController {
@@ -41,16 +40,19 @@ export class AuthController {
   }
 
   @Post('forgot/token')
+  @HttpCode(HttpStatus.OK)
   generatePasswordResetToken(@Body() dto: ForgotPasswordDto) {
     return this.authService.generateForgotPasswordToken(dto);
   }
 
   @Post('forgot/verifyToken')
+  @HttpCode(HttpStatus.OK)
   checkPasswordResetToken(@Body() dto: VerifyPasswordDto) {
     return this.authService.verifyForgotPasswordToken(dto);
   }
 
   @Put('forgot/password')
+  @HttpCode(HttpStatus.OK)
   changePassword(@Body() dto: ChangePasswordDto) {
     return this.authService.changeForgotPassword(dto);
   }

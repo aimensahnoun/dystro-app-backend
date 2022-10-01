@@ -140,13 +140,23 @@ export class AuthService {
 
       if (!doesUserExist) throw new NotFoundException('User does not exist');
 
-      const doesTotpExist = await this.prisma.tOTP.findUnique({
+      const doesTotpExist = await this.prisma.tOTP.findFirst({
         where: {
           user_id: dto.email,
         },
       });
 
-      if (doesTotpExist) throw new ForbiddenException('Token already exists');
+      if (
+        (doesTotpExist && doesTotpExist.expired) ||
+        (doesTotpExist && doesTotpExist.verified)
+      ) {
+        await this.prisma.tOTP.delete({
+          where: {
+            id: doesTotpExist.id,
+          },
+        });
+      } else if (doesTotpExist)
+        throw new ForbiddenException('Token already exists');
 
       const totpSecret = this.config.get('TOTP_SECRET');
 
@@ -160,6 +170,14 @@ export class AuthService {
       });
 
       setTimeout(async () => {
+        const doesItStillExist = await this.prisma.tOTP.findUnique({
+          where: {
+            id: totpDb.id,
+          },
+        });
+
+        if (!doesItStillExist) return;
+
         await this.prisma.tOTP.update({
           where: {
             id: totpDb.id,
@@ -199,6 +217,9 @@ export class AuthService {
 
         throw new ForbiddenException('Expired Token');
       }
+
+      if (doesTotpExist.verified)
+        throw new ForbiddenException('Token already verified');
 
       await this.prisma.tOTP.update({
         where: {
@@ -241,9 +262,9 @@ export class AuthService {
             hash,
           },
         }),
-        this.prisma.tOTP.delete({
+        this.prisma.tOTP.deleteMany({
           where: {
-            id: isVerifiedTotp.id,
+            user_id: dto.email,
           },
         }),
       ]);
