@@ -2,11 +2,12 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Logger } from 'nestjs-pino';
+
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon2 from 'argon2';
 import {
@@ -22,11 +23,13 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { TotpGeneratedEvent } from './events/events';
 import * as SendGrid from '@sendgrid/mail';
 import { TOTP_MESSAGE } from 'src/consts/send-grid';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class AuthService {
+  private logger: Logger = new Logger('AuthService');
+
   constructor(
-    private readonly logger: Logger,
     private prisma: PrismaService,
     private config: ConfigService,
     private jwt: JwtService,
@@ -182,25 +185,6 @@ export class AuthService {
         new TotpGeneratedEvent(dto.email, token),
       );
 
-      setTimeout(async () => {
-        const doesItStillExist = await this.prisma.tOTP.findUnique({
-          where: {
-            id: totpDb.id,
-          },
-        });
-
-        if (!doesItStillExist) return;
-
-        await this.prisma.tOTP.update({
-          where: {
-            id: totpDb.id,
-          },
-          data: {
-            expired: true,
-          },
-        });
-      }, 180000);
-
       return token;
     } catch (err) {
       this.logger.error(err);
@@ -291,8 +275,40 @@ export class AuthService {
   @OnEvent('totp.generated')
   async sendTotpEmail(event: TotpGeneratedEvent) {
     const { email, token } = event;
+    this.logger.log(
+      `Sending forgot password email to ${email} with token ${token} at ${new Date()}`,
+    );
 
     await SendGrid.send(TOTP_MESSAGE(token, email));
+  }
+
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  handleExpriredTotps() {
+    let totpCount = 0;
+
+    this.prisma.tOTP
+      .findMany({
+        where: {
+          expired: false,
+        },
+      })
+      .then(async (totps) => {
+        totps.forEach(async (totp) => {
+          if (totp.created_at < new Date(Date.now() - 180000)) {
+            totpCount++;
+            await this.prisma.tOTP.update({
+              where: {
+                id: totp.id,
+              },
+              data: {
+                expired: true,
+              },
+            });
+          }
+        });
+
+        if (totpCount > 0) this.logger.log(`Expired ${totpCount} TOTPs`);
+      });
   }
 
   signToken(email: string, type: string): Promise<string> {
