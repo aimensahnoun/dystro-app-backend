@@ -2,12 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity", "fullTextIndex", "fullTextSearch"]
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider             = "mysql"
+  url                  = env("DATABASE_URL")
+  referentialIntegrity = "prisma"
 }
 
 model Auth {
@@ -60,7 +62,7 @@ model TOTP {
   id         String   @id @unique @default(uuid())
   token      String
   created_at DateTime @default(now())
-  user_id    String   
+  user_id    String
   verified   Boolean  @default(false)
   expired    Boolean  @default(false)
   user       Auth     @relation(fields: [user_id], references: [email], onDelete: Cascade)
