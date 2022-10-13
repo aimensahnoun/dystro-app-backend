@@ -7,6 +7,7 @@ import { AdminModule } from './admin/admin.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CompanyModule } from './company/company.module';
+import { ClientModule } from './client/client.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CompanyModule } from './company/company.module';
     EmployeesModule,
     AdminModule,
     CompanyModule,
+    ClientModule,
   ],
 })
 export class AppModule {}

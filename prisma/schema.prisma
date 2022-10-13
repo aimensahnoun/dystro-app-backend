@@ -43,6 +43,7 @@ model Company {
   owner_id            String     @unique
   owner               Admin      @relation(fields: [owner_id], references: [id], onDelete: Cascade)
   employees           Employee[]
+  Client              Client[]
 }
 
 model Employee {
@@ -66,4 +67,18 @@ model TOTP {
   verified   Boolean  @default(false)
   expired    Boolean  @default(false)
   user       Auth     @relation(fields: [user_id], references: [email], onDelete: Cascade)
+}
+
+model Client {
+  id           String   @id @unique @default(uuid())
+  first_name   String
+  last_name    String
+  store_name   String?
+  phone_number String
+  address      String
+  lat          String
+  long         String
+  created_at   DateTime @default(now())
+  company_id   String
+  company      Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
 }
