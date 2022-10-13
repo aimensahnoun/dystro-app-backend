@@ -4,7 +4,9 @@ import {
   IsLatitude,
   IsLongitude,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
+  isPhoneNumber,
   IsPhoneNumber,
   IsString,
   MinLength,
@@ -22,7 +24,6 @@ export class ClientDto {
   last_name: string;
 
   @IsNotEmpty()
-  @IsPhoneNumber()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   phone_number: string;
 
