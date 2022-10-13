@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   UseGuards,
@@ -57,7 +58,7 @@ export class EmployeesController {
     return this.employee.deleteEmployee(admin, id);
   }
 
-  @Put(':id')
+  @Patch(':id')
   activateEmployeeById(@GetUser() admin, @Param('id') id: string) {
     return this.employee.enableEmployee(admin, id);
   }
