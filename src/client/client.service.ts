@@ -28,9 +28,6 @@ export class ClientService {
   }
 
   async getClients(admin: Admin & { company: Company }) {
-    if (admin.type !== 'admin')
-      throw new UnauthorizedException('You are not an admin');
-
     const clients = await this.prisma.client.findMany({
       where: {
         company_id: admin.company.id,

@@ -44,6 +44,7 @@ model Company {
   owner               Admin      @relation(fields: [owner_id], references: [id], onDelete: Cascade)
   employees           Employee[]
   Client              Client[]
+  Product             Product[]
 }
 
 model Employee {
@@ -81,4 +82,14 @@ model Client {
   created_at   DateTime @default(now())
   company_id   String
   company      Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id         String   @id @unique @default(uuid())
+  name       String
+  price      Float
+  in_stock   Boolean  @default(true)
+  created_at DateTime @default(now())
+  company_id String
+  company    Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
 }
