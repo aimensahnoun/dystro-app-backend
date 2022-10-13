@@ -56,4 +56,9 @@ export class EmployeesController {
   deleteEmployeeById(@GetUser() admin, @Param('id') id: string) {
     return this.employee.deleteEmployee(admin, id);
   }
+
+  @Put(':id')
+  activateEmployeeById(@GetUser() admin, @Param('id') id: string) {
+    return this.employee.enableEmployee(admin, id);
+  }
 }

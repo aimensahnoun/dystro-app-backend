@@ -139,4 +139,18 @@ export class EmployeesService {
 
     return { message: 'Employee deleted successfully' };
   }
+
+  async enableEmployee(admin: any, id: string) {
+    if (admin.type !== 'admin')
+      throw new UnauthorizedException('Only admins are allowed');
+
+    const user = await this.getEmployeeById(admin, id);
+
+    await this.prisma.employee.update({
+      where: { id },
+      data: { is_active: true },
+    });
+
+    return { message: 'Employee activated successfully' };
+  }
 }
