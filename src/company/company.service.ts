@@ -11,9 +11,6 @@ export class CompanyService {
   async getMyCompany(admin: Admin & { company: Company }) {
     this.logger.log(`Getting company for admin ${admin.id}`);
 
-    if (admin.type !== 'admin')
-      throw new UnauthorizedException('You are not an admin');
-
     return admin.company;
   }
 
