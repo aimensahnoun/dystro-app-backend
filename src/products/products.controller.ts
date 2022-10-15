@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Logger,
   Param,
@@ -53,5 +54,14 @@ export class ProductsController {
   ) {
     this.logger.log(`enableProduct: ${id} by ${admin.id}`);
     return this.productsService.enableProduct(admin, id);
+  }
+
+  @Delete(':id')
+  deleteProduct(
+    @GetUser() admin: Admin & { company: Company },
+    @Param('id') id: string,
+  ) {
+    this.logger.log(`deleteProduct: ${id} by ${admin.id}`);
+    return this.productsService.deleteProduct(admin, id);
   }
 }

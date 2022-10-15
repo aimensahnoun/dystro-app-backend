@@ -63,4 +63,17 @@ export class ProductsService {
 
     return product;
   }
+
+  async deleteProduct(admin: Admin & { company: Company }, id: string) {
+    if (admin.type !== 'admin')
+      throw new UnauthorizedException('Only admins can delete products');
+
+    const product = await this.prisma.product.delete({
+      where: {
+        id,
+      },
+    });
+
+    return product;
+  }
 }
