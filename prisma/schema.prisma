@@ -3,7 +3,7 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity", "fullTextIndex", "fullTextSearch"]
+  previewFeatures = ["referentialIntegrity", "fullTextIndex", "fullTextSearch", "interactiveTransactions"]
 }
 
 datasource db {
@@ -45,6 +45,7 @@ model Company {
   employees           Employee[]
   Client              Client[]
   Product             Product[]
+  Sale                Sale[]
 }
 
 model Employee {
@@ -58,6 +59,7 @@ model Employee {
   company_id          String
   is_active           Boolean  @default(true)
   company             Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  Sale                Sale[]
 }
 
 model TOTP {
@@ -82,14 +84,40 @@ model Client {
   created_at   DateTime @default(now())
   company_id   String
   company      Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  Sale         Sale[]
 }
 
 model Product {
-  id         String   @id @unique @default(uuid())
+  id         String     @id @unique @default(uuid())
   name       String
   price      Float
-  in_stock   Boolean  @default(true)
-  created_at DateTime @default(now())
+  in_stock   Boolean    @default(true)
+  created_at DateTime   @default(now())
   company_id String
-  company    Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  company    Company    @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  SaleItem   SaleItem[]
+}
+
+model Sale {
+  id         String     @id @unique @default(uuid())
+  created_at DateTime   @default(now())
+  company_id String
+  company    Company    @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  client_id  String
+  client     Client     @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  SaleItem   SaleItem[]
+  user_id    String
+  user       Employee?  @relation(fields: [user_id], references: [id])
+}
+
+model SaleItem {
+  id           String   @id @unique @default(uuid())
+  created_at   DateTime @default(now())
+  quantity     Int
+  price        Float
+  product_name String
+  product_id   String
+  sale_id      String?
+  sale         Sale?    @relation(fields: [sale_id], references: [id], onDelete: Cascade)
+  Product      Product? @relation(fields: [product_id], references: [id])
 }
