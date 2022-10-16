@@ -20,19 +20,28 @@ export class SaleService {
       } and client: ${dto.client_id} with ${JSON.stringify(dto)} `,
     );
 
-    this.prisma.$transaction(async (tx: PrismaClient) => {
+    return this.prisma.$transaction(async (tx: PrismaClient) => {
+      let total = 0;
+
+      dto.sale_items.forEach((item) => {
+        total += item.price * item.quantity;
+      });
+
       const sale = await tx.sale.create({
         data: {
           client_id: dto.client_id,
           company_id: user.company.id,
           user_id: user.id,
+          total,
         },
       });
 
-      const saleItems = dto.sale_items.map((item) => ({
-        ...item,
-        sale_id: sale.id,
-      }));
+      const saleItems = dto.sale_items.map((item) => {
+        return {
+          ...item,
+          sale_id: sale.id,
+        };
+      });
 
       await tx.saleItem.createMany({
         data: saleItems,

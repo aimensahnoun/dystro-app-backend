@@ -108,6 +108,7 @@ model Sale {
   SaleItem   SaleItem[]
   user_id    String
   user       Employee?  @relation(fields: [user_id], references: [id])
+  total      Float
 }
 
 model SaleItem {
