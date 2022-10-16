@@ -58,6 +58,7 @@ export class SaleService {
         SaleItem: true,
         client: true,
         user: true,
+        company: true,
       },
     });
   }
