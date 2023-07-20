@@ -20,13 +20,41 @@ export class CompanyService {
     if (admin.type !== 'admin')
       throw new UnauthorizedException('You are not an admin');
 
-    return this.prisma.company.update({
-      where: { id: admin.company.id },
+    this.prisma.admin.update({
+      where: { id: admin.id },
       data: {
-        name: dto.name,
-        currency: dto.currency,
         is_profile_complete: true,
       },
     });
+
+    if (admin.company) {
+      return this.prisma.company.update({
+        where: { id: admin.company.id },
+        data: {
+          name: dto.name,
+          currency: dto.currency,
+          is_profile_complete: true,
+        },
+      });
+    } else {
+      const transactionResult = await this.prisma.$transaction([
+        this.prisma.admin.update({
+          where: { id: admin.id },
+          data: {
+            is_profile_complete: true,
+          },
+        }),
+        this.prisma.company.create({
+          data: {
+            name: dto.name,
+            currency: dto.currency,
+            is_profile_complete: true,
+            owner_id: admin.id,
+          },
+        }),
+      ]);
+
+      return transactionResult[1];
+    }
   }
 }
