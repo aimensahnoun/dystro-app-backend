@@ -31,7 +31,6 @@ export class SaleService {
         data: {
           client_id: dto.client_id,
           company_id: user.company.id,
-          user_id: user.id,
           total,
         },
       });

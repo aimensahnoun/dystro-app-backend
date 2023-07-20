@@ -105,7 +105,7 @@ model Sale {
   client_id  String
   client     Client     @relation(fields: [client_id], references: [id], onDelete: Cascade)
   SaleItem   SaleItem[]
-  user_id    String
+  user_id    String?
   user       Employee?  @relation(fields: [user_id], references: [id])
   total      Float
 }
