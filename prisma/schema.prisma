@@ -32,7 +32,7 @@ model User {
   is_active           Boolean  @default(true)
   default_language    String   @default("en")
   Sale                Sale[]
-  Company             Company? @relation("UserToCompany", fields: [company_id], references: [id])
+  company             Company? @relation("UserToCompany", fields: [company_id], references: [id])
   ownedCompany Company? @relation("OwnerToCompany")
 }
 

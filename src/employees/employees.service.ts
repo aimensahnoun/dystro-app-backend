@@ -1,10 +1,9 @@
 import {
-  ConsoleLogger,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Admin, Company, Employee } from '@prisma/client';
+import { Company, User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { EmployeeDto, NewEmployeeDto } from './dto/employee.dto';
@@ -23,15 +22,15 @@ export class EmployeesService {
 
       const passwordHash = await argon2.hash(dto.password);
 
-      const [employeeAuth, employee] = await this.prisma.$transaction([
+      const [employee] = await this.prisma.$transaction([
         this.prisma.auth.create({
           data: {
             email: dto.email,
             hash: passwordHash,
-            type: 'employee',
+            type: 'EMPLOYEE',
           },
         }),
-        this.prisma.employee.create({
+        this.prisma.user.create({
           data: {
             first_name: dto.first_name,
             last_name: dto.last_name,
@@ -53,11 +52,8 @@ export class EmployeesService {
     }
   }
 
-  async updateEmployee(
-    user: Employee & { company: Company },
-    dto: EmployeeDto,
-  ) {
-    if (user.type !== 'employee')
+  async updateEmployee(user: User & { company: Company }, dto: EmployeeDto) {
+    if (user.type !== 'EMPLOYEE')
       throw new UnauthorizedException('Only employees are allowed');
 
     if (dto.email !== user.email) {
@@ -67,12 +63,12 @@ export class EmployeesService {
       if (emailExists) throw new UnauthorizedException('Email already exists');
     }
 
-    const [newAuth, newEmployee] = await this.prisma.$transaction([
+    const [newEmployee] = await this.prisma.$transaction([
       this.prisma.auth.update({
         where: { email: user.email },
         data: { email: dto.email },
       }),
-      this.prisma.employee.update({
+      this.prisma.user.update({
         where: { id: user.id },
         data: {
           first_name: dto.first_name,
@@ -86,8 +82,8 @@ export class EmployeesService {
     return newEmployee;
   }
 
-  getEmployee(user: Employee) {
-    if (user.type !== 'employee')
+  getEmployee(user: User) {
+    if (user.type !== 'EMPLOYEE')
       throw new UnauthorizedException('Only employees are allowed');
 
     return user;
@@ -97,7 +93,7 @@ export class EmployeesService {
     if (admin.type !== 'admin')
       throw new UnauthorizedException('Only admins are allowed');
 
-    return this.prisma.employee.findMany({
+    return this.prisma.user.findMany({
       where: { company_id: admin.company.id },
     });
   }
@@ -105,17 +101,17 @@ export class EmployeesService {
     if (admin.type !== 'admin')
       throw new UnauthorizedException('Only admins are allowed');
 
-    const employee = await this.prisma.employee.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id },
       include: { company: true },
     });
 
-    if (employee.company_id !== admin.company.id)
+    if (user.company_id !== admin.company.id)
       throw new UnauthorizedException(
         'You are not allowed to view this employee',
       );
 
-    return employee;
+    return user;
   }
 
   async updateEmployeeById(admin: any, id: string, dto: EmployeeDto) {
@@ -132,7 +128,7 @@ export class EmployeesService {
 
     const user = await this.getEmployeeById(admin, id);
 
-    await this.prisma.employee.update({
+    await this.prisma.user.update({
       where: { id },
       data: { is_active: false },
     });
@@ -146,7 +142,7 @@ export class EmployeesService {
 
     const user = await this.getEmployeeById(admin, id);
 
-    await this.prisma.employee.update({
+    await this.prisma.user.update({
       where: { id },
       data: { is_active: true },
     });

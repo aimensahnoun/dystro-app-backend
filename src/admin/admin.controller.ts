@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
-import { Admin } from '@prisma/client';
+import { User } from '@prisma/client';
 import { GetUser } from 'src/auth/decorators/getUser.decorator';
 import { JWTGuard } from 'src/auth/guards/jwt.guard';
 import { AdminService } from './admin.service';
@@ -11,17 +11,17 @@ export class AdminController {
   constructor(private admin: AdminService) {}
 
   @Put()
-  updateAdmin(@Body() dto: AdminDto, @GetUser() admin: Admin) {
+  updateAdmin(@Body() dto: AdminDto, @GetUser() admin: User) {
     return this.admin.updateAdmin(dto, admin);
   }
 
   @Get('me')
-  getMe(@GetUser() admin: Admin) {
+  getMe(@GetUser() admin: User) {
     return admin;
   }
 
   @Get(':id')
-  getAdmin(@GetUser() admin: Admin, @Param('id') id: string) {
+  getAdmin(@GetUser() admin: User, @Param('id') id: string) {
     return this.admin.getAdmin(admin, id);
   }
 }

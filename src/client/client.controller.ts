@@ -1,8 +1,7 @@
 import { Body, Controller, Get, Logger, Post, UseGuards } from '@nestjs/common';
-import { Admin, Company } from '@prisma/client';
+import { User, Company } from '@prisma/client';
 import { GetUser } from 'src/auth/decorators/getUser.decorator';
 import { JWTGuard } from 'src/auth/guards/jwt.guard';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { ClientService } from './client.service';
 import { ClientDto } from './dto/client.dto';
 
@@ -16,7 +15,7 @@ export class ClientController {
 
   @Post()
   addClient(
-    @GetUser() admin: Admin & { company: Company },
+    @GetUser() admin: User & { company: Company },
     @Body() dto: ClientDto,
   ) {
     this.logger.log(`Admin ${admin.id} is adding a new client`);
@@ -25,7 +24,7 @@ export class ClientController {
   }
 
   @Get()
-  getClients(@GetUser() admin: Admin & { company: Company }) {
+  getClients(@GetUser() admin: User & { company: Company }) {
     this.logger.log(`Admin ${admin.id} is getting all clients`);
     return this.clientService.getClients(admin);
   }

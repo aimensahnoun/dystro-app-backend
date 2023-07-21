@@ -1,5 +1,5 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { Admin, Company } from '@prisma/client';
+import { User, Company } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CompanyDTO } from './dto/company.dto';
 
@@ -8,19 +8,19 @@ export class CompanyService {
   private logger: Logger = new Logger('CompanyService');
   constructor(private prisma: PrismaService) {}
 
-  async getMyCompany(admin: Admin & { company: Company }) {
+  async getMyCompany(admin: User & { company: Company }) {
     this.logger.log(`Getting company for admin ${admin.id}`);
 
     return admin.company;
   }
 
-  async updateCompany(dto: CompanyDTO, admin: Admin & { company: Company }) {
+  async updateCompany(dto: CompanyDTO, admin: User & { company: Company }) {
     this.logger.log(`Updating company for admin ${admin.id}`);
 
-    if (admin.type !== 'admin')
+    if (admin.type !== 'OWNER')
       throw new UnauthorizedException('You are not an admin');
 
-    this.prisma.admin.update({
+    this.prisma.user.update({
       where: { id: admin.id },
       data: {
         is_profile_complete: true,
@@ -38,7 +38,7 @@ export class CompanyService {
       });
     } else {
       const transactionResult = await this.prisma.$transaction([
-        this.prisma.admin.update({
+        this.prisma.user.update({
           where: { id: admin.id },
           data: {
             is_profile_complete: true,

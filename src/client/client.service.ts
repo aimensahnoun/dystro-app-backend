@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Admin, Company } from '@prisma/client';
+import { User, Company } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ClientDto } from './dto/client.dto';
 
@@ -7,14 +7,12 @@ import { ClientDto } from './dto/client.dto';
 export class ClientService {
   constructor(private prisma: PrismaService) {}
 
-  async addClient(admin: Admin & { company: Company }, dto: ClientDto) {
-    if (admin.type !== 'admin')
+  async addClient(admin: User & { company: Company }, dto: ClientDto) {
+    if (admin.type !== 'OWNER')
       throw new UnauthorizedException('You are not an admin');
 
     const client = await this.prisma.client.create({
       data: {
-        first_name: dto.first_name,
-        last_name: dto.last_name,
         store_name: dto.store_name,
         phone_number: dto.phone_number,
         address: dto.address,
@@ -27,7 +25,7 @@ export class ClientService {
     return client;
   }
 
-  async getClients(admin: Admin & { company: Company }) {
+  async getClients(admin: User & { company: Company }) {
     const clients = await this.prisma.client.findMany({
       where: {
         company_id: admin.company.id,

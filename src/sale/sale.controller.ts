@@ -4,7 +4,7 @@ import { JWTGuard } from 'src/auth/guards/jwt.guard';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SaleDto } from './dto/sale.dto';
 import { SaleService } from './sale.service';
-import { Employee, Admin, Company } from '@prisma/client';
+import { User, Company } from '@prisma/client';
 
 @UseGuards(JWTGuard)
 @Controller('sale')
@@ -16,14 +16,14 @@ export class SaleController {
 
   @Post()
   createSale(
-    @GetUser() user: (Admin | Employee) & { company: Company },
+    @GetUser() user: User & { company: Company },
     @Body() dto: SaleDto,
   ) {
     return this.saleService.createSale(user, dto);
   }
 
   @Get()
-  getSales(@GetUser() user: (Admin | Employee) & { company: Company }) {
+  getSales(@GetUser() user: User & { company: Company }) {
     return this.saleService.getSales(user);
   }
 }

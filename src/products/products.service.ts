@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Admin, Company } from '@prisma/client';
+import { User, Company } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProductDto } from './dto/product.dto';
 
@@ -7,8 +7,8 @@ import { ProductDto } from './dto/product.dto';
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
-  async createProduct(admin: Admin & { company: Company }, dto: ProductDto) {
-    if (admin.type !== 'admin')
+  async createProduct(admin: User & { company: Company }, dto: ProductDto) {
+    if (admin.type !== 'OWNER')
       throw new UnauthorizedException('Only admins can create products');
 
     const product = await this.prisma.product.create({
@@ -22,7 +22,7 @@ export class ProductsService {
     return product;
   }
 
-  async getProducts(admin: Admin & { company: Company }) {
+  async getProducts(admin: User & { company: Company }) {
     const products = await this.prisma.product.findMany({
       where: {
         company_id: admin.company.id,
@@ -32,8 +32,8 @@ export class ProductsService {
     return products;
   }
 
-  async disableProduct(admin: Admin & { company: Company }, id: string) {
-    if (admin.type !== 'admin')
+  async disableProduct(admin: User & { company: Company }, id: string) {
+    if (admin.type !== 'OWNER')
       throw new UnauthorizedException('Only admins can disable products');
 
     const product = await this.prisma.product.update({
@@ -48,8 +48,8 @@ export class ProductsService {
     return product;
   }
 
-  async enableProduct(admin: Admin & { company: Company }, id: string) {
-    if (admin.type !== 'admin')
+  async enableProduct(admin: User & { company: Company }, id: string) {
+    if (admin.type !== 'OWNER')
       throw new UnauthorizedException('Only admins can disable products');
 
     const product = await this.prisma.product.update({
@@ -64,8 +64,8 @@ export class ProductsService {
     return product;
   }
 
-  async deleteProduct(admin: Admin & { company: Company }, id: string) {
-    if (admin.type !== 'admin')
+  async deleteProduct(admin: User & { company: Company }, id: string) {
+    if (admin.type !== 'OWNER')
       throw new UnauthorizedException('Only admins can delete products');
 
     const product = await this.prisma.product.delete({

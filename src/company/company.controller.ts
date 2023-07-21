@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
-import { Admin, Company } from '@prisma/client';
+import { User, Company } from '@prisma/client';
 import { GetUser } from 'src/auth/decorators/getUser.decorator';
 import { JWTGuard } from 'src/auth/guards/jwt.guard';
 import { CompanyService } from './company.service';
@@ -11,13 +11,13 @@ export class CompanyController {
   constructor(private company: CompanyService) {}
 
   @Get()
-  getMyCompany(@GetUser() admin: Admin & { company: Company }) {
+  getMyCompany(@GetUser() admin: User & { company: Company }) {
     return this.company.getMyCompany(admin);
   }
 
   @Put()
   updateCompany(
-    @GetUser() admin: Admin & { company: Company },
+    @GetUser() admin: User & { company: Company },
     @Body() dto: CompanyDTO,
   ) {
     return this.company.updateCompany(dto, admin);

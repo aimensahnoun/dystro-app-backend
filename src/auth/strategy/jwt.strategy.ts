@@ -15,28 +15,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    const type = payload.type;
-
-    let response;
-    if (type === 'admin') {
-      response = await this.prisma.admin.findUnique({
-        where: {
-          email: payload.email,
-        },
-        include: {
-          company: true,
-        },
-      });
-    } else {
-      response = await this.prisma.employee.findUnique({
-        where: {
-          email: payload.email,
-        },
-        include: {
-          company: true,
-        },
-      });
-    }
+    const response = await this.prisma.user.findUnique({
+      where: {
+        email: payload.email,
+      },
+      include: {
+        company: true,
+      },
+    });
 
     return response;
   }
