@@ -24,6 +24,7 @@ import { TotpGeneratedEvent } from './events/events';
 import * as SendGrid from '@sendgrid/mail';
 import { TOTP_MESSAGE } from 'src/consts/send-grid';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -42,34 +43,37 @@ export class AuthService {
     dto: AdminRegisterDto,
   ): Promise<{ user: Auth; token: string }> {
     try {
-      this.logger.log('AUTH HELLO WORLD');
-
       const passwordHash = await argon2.hash(dto.password);
 
-      const [user, admin] = await this.prisma.$transaction([
+      const ownerId = randomUUID();
+      const companyId = randomUUID();
+
+      const [user] = await this.prisma.$transaction([
         this.prisma.auth.create({
           data: {
             email: dto.email,
             hash: passwordHash,
-            type: 'admin',
+            type: 'OWNER',
           },
         }),
-        this.prisma.admin.create({
+        this.prisma.user.create({
           data: {
+            company_id: companyId,
             email: dto.email,
             first_name: dto.first_name,
             last_name: dto.last_name,
+            type: 'OWNER',
+            id: ownerId,
+          },
+        }),
+        this.prisma.company.create({
+          data: {
+            name: '',
+            currency: '',
+            owner_id: ownerId,
           },
         }),
       ]);
-
-      await this.prisma.company.create({
-        data: {
-          name: '',
-          currency: '',
-          owner_id: admin.id,
-        },
-      });
 
       const jwt = await this.signToken(user.email, 'admin');
 
@@ -92,8 +96,6 @@ export class AuthService {
 
   async login(dto: AuthDto): Promise<{ user: Auth; token: string }> {
     try {
-      // this.logger.log('AUTH HELLO WORLD');
-
       const user = await this.prisma.auth.findUnique({
         where: {
           email: dto.email,
@@ -102,8 +104,8 @@ export class AuthService {
 
       if (!user) throw new NotFoundException('User does not exist');
 
-      if (user.type === 'employee') {
-        const employee = await this.prisma.employee.findUnique({
+      if (user.type === 'EMPLOYEE') {
+        const employee = await this.prisma.user.findUnique({
           where: {
             email: dto.email,
           },
@@ -173,7 +175,7 @@ export class AuthService {
 
       const token = totp.generate(totpSecret);
 
-      const totpDb = await this.prisma.tOTP.create({
+      await this.prisma.tOTP.create({
         data: {
           token: token,
           user_id: doesUserExist.email,
@@ -250,7 +252,7 @@ export class AuthService {
 
       const hash = await argon2.hash(dto.password);
 
-      const [newAuth, deletedToken] = await this.prisma.$transaction([
+      await this.prisma.$transaction([
         this.prisma.auth.update({
           where: {
             email: dto.email,

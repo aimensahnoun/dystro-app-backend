@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Admin, Company, Employee, PrismaClient } from '@prisma/client';
+import { Company, User, PrismaClient } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SaleDto } from './dto/sale.dto';
 
@@ -10,10 +10,7 @@ export class SaleService {
     this.logger = new Logger('SaleService');
   }
 
-  async createSale(
-    user: (Admin | Employee) & { company: Company },
-    dto: SaleDto,
-  ) {
+  async createSale(user: User & { company: Company }, dto: SaleDto) {
     this.logger.debug(
       `Creating sale by : ${user.id} for company: ${
         user.company.id
@@ -48,7 +45,7 @@ export class SaleService {
     });
   }
 
-  async getSales(user: (Admin | Employee) & { company: Company }) {
+  async getSales(user: User & { company: Company }) {
     return this.prisma.sale.findMany({
       where: {
         company_id: user.company.id,

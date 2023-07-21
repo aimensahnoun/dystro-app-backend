@@ -14,51 +14,46 @@ datasource db {
 model Auth {
   email      String   @unique
   hash       String
-  type       String   @default("admin")
+  type       UserType @default(OWNER)
   created_at DateTime @default(now())
   last_login DateTime @default(now())
   TOTP       TOTP[]
 }
 
-model Admin {
+model User {
   id                  String   @id @unique @default(uuid())
-  email               String   @unique
-  type                String   @default("admin")
   first_name          String
   last_name           String
+  email               String   @unique
   is_profile_complete Boolean  @default(false)
+  type                UserType @default(EMPLOYEE)
+  company_id          String
   created_at          DateTime @default(now())
+  is_active           Boolean  @default(true)
   default_language    String   @default("en")
-  company             Company?
+  Sale                Sale[]
+  Company             Company? @relation("UserToCompany", fields: [company_id], references: [id])
+  ownedCompany Company? @relation("OwnerToCompany")
 }
 
 model Company {
-  id                  String     @id @unique @default(uuid())
+  id                  String    @id @unique @default(uuid())
   name                String
-  type                String     @default("company")
-  is_profile_complete Boolean    @default(false)
-  created_at          DateTime   @default(now())
+  type                String    @default("company")
+  is_profile_complete Boolean   @default(false)
+  created_at          DateTime  @default(now())
   currency            String
-  owner_id            String     @unique
-  owner               Admin      @relation(fields: [owner_id], references: [id], onDelete: Cascade)
-  employees           Employee[]
+  owner_id            String    @unique
+  owner               User      @relation("OwnerToCompany", fields: [owner_id], references: [id], onDelete: Cascade)
+  employees           User[]    @relation("UserToCompany")
   Client              Client[]
   Product             Product[]
   Sale                Sale[]
 }
 
-model Employee {
-  id                  String   @id @unique @default(uuid())
-  first_name          String
-  last_name           String
-  email               String   @unique
-  is_profile_complete Boolean  @default(false)
-  created_at          DateTime @default(now())
-  type                String   @default("employee")
-  company_id          String
-  is_active           Boolean  @default(true)
-  company             Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  Sale                Sale[]
+enum UserType {
+  OWNER
+  EMPLOYEE
 }
 
 model TOTP {
@@ -73,9 +68,7 @@ model TOTP {
 
 model Client {
   id           String   @id @unique @default(uuid())
-  first_name   String
-  last_name    String
-  store_name   String?
+  store_name   String
   phone_number String
   address      String
   lat          String
@@ -106,7 +99,7 @@ model Sale {
   client     Client     @relation(fields: [client_id], references: [id], onDelete: Cascade)
   SaleItem   SaleItem[]
   user_id    String?
-  user       Employee?  @relation(fields: [user_id], references: [id])
+  user       User?      @relation(fields: [user_id], references: [id])
   total      Float
 }
 
