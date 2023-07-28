@@ -10,7 +10,12 @@ export class SaleService {
     this.logger = new Logger('SaleService');
   }
 
-  async createSale(user: User & { company: Company }, dto: SaleDto) {
+  async createSale(
+    user: User & { company: Company } & {
+      ownedCompany: Company;
+    },
+    dto: SaleDto,
+  ) {
     this.logger.debug(
       `Creating sale by : ${user.id} for company: ${
         user.company.id
@@ -24,10 +29,15 @@ export class SaleService {
         total += item.price * item.quantity;
       });
 
+      const companyId = user.company?.id
+        ? user.company.id
+        : user.ownedCompany.id;
+
       const sale = await tx.sale.create({
         data: {
           client_id: dto.client_id,
-          company_id: user.company.id,
+          company_id: companyId,
+          user_id: user.id,
           total,
         },
       });
@@ -45,10 +55,16 @@ export class SaleService {
     });
   }
 
-  async getSales(user: User & { company: Company }) {
+  async getSales(
+    user: User & { company: Company } & {
+      ownedCompany: Company;
+    },
+  ) {
+    const companyId = user.company?.id ? user.company.id : user.ownedCompany.id;
+
     return this.prisma.sale.findMany({
       where: {
-        company_id: user.company.id,
+        company_id: companyId,
       },
       include: {
         SaleItem: true,

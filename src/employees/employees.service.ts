@@ -14,7 +14,7 @@ export class EmployeesService {
 
   async createEmployee(admin: any, dto: NewEmployeeDto) {
     try {
-      if (admin.type !== 'admin')
+      if (admin.type !== 'OWNER')
         throw new UnauthorizedException('Only admins are allowed');
 
       if (!admin.is_profile_complete)
@@ -35,7 +35,7 @@ export class EmployeesService {
             first_name: dto.first_name,
             last_name: dto.last_name,
             email: dto.email,
-            company_id: admin.company.id,
+            company_id: admin.ownedCompany.id,
             is_profile_complete: true,
           },
         }),
@@ -90,15 +90,16 @@ export class EmployeesService {
   }
 
   async getEmployees(admin: any) {
-    if (admin.type !== 'admin')
+    if (admin.type !== 'OWNER')
       throw new UnauthorizedException('Only admins are allowed');
 
     return this.prisma.user.findMany({
-      where: { company_id: admin.company.id },
+      where: { company_id: admin.ownedCompany.id, type: 'EMPLOYEE' },
     });
   }
+
   async getEmployeeById(admin: any, id: string) {
-    if (admin.type !== 'admin')
+    if (admin.type !== 'OWNER')
       throw new UnauthorizedException('Only admins are allowed');
 
     const user = await this.prisma.user.findUnique({
@@ -106,7 +107,7 @@ export class EmployeesService {
       include: { company: true },
     });
 
-    if (user.company_id !== admin.company.id)
+    if (user.company_id !== admin.ownedCompany.id)
       throw new UnauthorizedException(
         'You are not allowed to view this employee',
       );
@@ -123,7 +124,7 @@ export class EmployeesService {
   }
 
   async deleteEmployee(admin: any, id: string) {
-    if (admin.type !== 'admin')
+    if (admin.type !== 'OWNER')
       throw new UnauthorizedException('Only admins are allowed');
 
     const user = await this.getEmployeeById(admin, id);
@@ -137,7 +138,7 @@ export class EmployeesService {
   }
 
   async enableEmployee(admin: any, id: string) {
-    if (admin.type !== 'admin')
+    if (admin.type !== 'OWNER')
       throw new UnauthorizedException('Only admins are allowed');
 
     const user = await this.getEmployeeById(admin, id);

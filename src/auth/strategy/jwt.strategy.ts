@@ -21,6 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       },
       include: {
         company: true,
+        ownedCompany: true,
       },
     });
 

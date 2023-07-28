@@ -25,7 +25,7 @@ export class ProductsController {
 
   @Post()
   createProduct(
-    @GetUser() admin: User & { company: Company },
+    @GetUser() admin: User & { ownedCompany: Company },
     @Body() dto: ProductDto,
   ) {
     this.logger.log(`createProduct: ${JSON.stringify(dto)} by ${admin.id}`);
@@ -33,14 +33,14 @@ export class ProductsController {
   }
 
   @Get()
-  getProducts(@GetUser() admin: User & { company: Company }) {
+  getProducts(@GetUser() admin: User & { ownedCompany: Company }) {
     this.logger.log(`getProducts by ${admin.id}`);
     return this.productsService.getProducts(admin);
   }
 
   @Put('disable/:id')
   disableProduct(
-    @GetUser() admin: User & { company: Company },
+    @GetUser() admin: User & { ownedCompany: Company },
     @Param('id') id: string,
   ) {
     this.logger.log(`disableProduct: ${id} by ${admin.id}`);
@@ -49,7 +49,7 @@ export class ProductsController {
 
   @Put('enable/:id')
   enableProduct(
-    @GetUser() admin: User & { company: Company },
+    @GetUser() admin: User & { ownedCompany: Company },
     @Param('id') id: string,
   ) {
     this.logger.log(`enableProduct: ${id} by ${admin.id}`);
@@ -58,7 +58,7 @@ export class ProductsController {
 
   @Delete(':id')
   deleteProduct(
-    @GetUser() admin: User & { company: Company },
+    @GetUser() admin: User & { ownedCompany: Company },
     @Param('id') id: string,
   ) {
     this.logger.log(`deleteProduct: ${id} by ${admin.id}`);

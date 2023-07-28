@@ -27,13 +27,13 @@ model User {
   email               String   @unique
   is_profile_complete Boolean  @default(false)
   type                UserType @default(EMPLOYEE)
-  company_id          String
+  company_id          String?  
   created_at          DateTime @default(now())
   is_active           Boolean  @default(true)
   default_language    String   @default("en")
   Sale                Sale[]
   company             Company? @relation("UserToCompany", fields: [company_id], references: [id])
-  ownedCompany Company? @relation("OwnerToCompany")
+  ownedCompany        Company? @relation("OwnerToCompany")
 }
 
 model Company {
@@ -43,8 +43,8 @@ model Company {
   is_profile_complete Boolean   @default(false)
   created_at          DateTime  @default(now())
   currency            String
-  owner_id            String    @unique
-  owner               User      @relation("OwnerToCompany", fields: [owner_id], references: [id], onDelete: Cascade)
+  owner_id            String?   @unique
+  owner               User?     @relation("OwnerToCompany", fields: [owner_id], references: [id])
   employees           User[]    @relation("UserToCompany")
   Client              Client[]
   Product             Product[]

@@ -15,7 +15,7 @@ export class ClientController {
 
   @Post()
   addClient(
-    @GetUser() admin: User & { company: Company },
+    @GetUser() admin: User & { ownedCompany: Company },
     @Body() dto: ClientDto,
   ) {
     this.logger.log(`Admin ${admin.id} is adding a new client`);
@@ -24,7 +24,7 @@ export class ClientController {
   }
 
   @Get()
-  getClients(@GetUser() admin: User & { company: Company }) {
+  getClients(@GetUser() admin: User & { ownedCompany: Company }) {
     this.logger.log(`Admin ${admin.id} is getting all clients`);
     return this.clientService.getClients(admin);
   }

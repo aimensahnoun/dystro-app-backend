@@ -7,7 +7,10 @@ import { ProductDto } from './dto/product.dto';
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
-  async createProduct(admin: User & { company: Company }, dto: ProductDto) {
+  async createProduct(
+    admin: User & { ownedCompany: Company },
+    dto: ProductDto,
+  ) {
     if (admin.type !== 'OWNER')
       throw new UnauthorizedException('Only admins can create products');
 
@@ -15,24 +18,24 @@ export class ProductsService {
       data: {
         name: dto.name,
         price: dto.price,
-        company_id: admin.company.id,
+        company_id: admin.ownedCompany.id,
       },
     });
 
     return product;
   }
 
-  async getProducts(admin: User & { company: Company }) {
+  async getProducts(user: User & { ownedCompany: Company }) {
     const products = await this.prisma.product.findMany({
       where: {
-        company_id: admin.company.id,
+        company_id: user.company_id,
       },
     });
 
     return products;
   }
 
-  async disableProduct(admin: User & { company: Company }, id: string) {
+  async disableProduct(admin: User & { ownedCompany: Company }, id: string) {
     if (admin.type !== 'OWNER')
       throw new UnauthorizedException('Only admins can disable products');
 
@@ -48,7 +51,7 @@ export class ProductsService {
     return product;
   }
 
-  async enableProduct(admin: User & { company: Company }, id: string) {
+  async enableProduct(admin: User & { ownedCompany: Company }, id: string) {
     if (admin.type !== 'OWNER')
       throw new UnauthorizedException('Only admins can disable products');
 
@@ -64,7 +67,7 @@ export class ProductsService {
     return product;
   }
 
-  async deleteProduct(admin: User & { company: Company }, id: string) {
+  async deleteProduct(admin: User & { ownedCompany: Company }, id: string) {
     if (admin.type !== 'OWNER')
       throw new UnauthorizedException('Only admins can delete products');
 

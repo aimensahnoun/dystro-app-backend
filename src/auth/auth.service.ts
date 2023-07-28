@@ -58,7 +58,6 @@ export class AuthService {
         }),
         this.prisma.user.create({
           data: {
-            company_id: companyId,
             email: dto.email,
             first_name: dto.first_name,
             last_name: dto.last_name,
@@ -66,11 +65,23 @@ export class AuthService {
             id: ownerId,
           },
         }),
+      ]);
+
+      await this.prisma.$transaction([
         this.prisma.company.create({
           data: {
             name: '',
             currency: '',
             owner_id: ownerId,
+            id: companyId,
+          },
+        }),
+        this.prisma.user.update({
+          where: {
+            id: ownerId,
+          },
+          data: {
+            company_id: companyId,
           },
         }),
       ]);

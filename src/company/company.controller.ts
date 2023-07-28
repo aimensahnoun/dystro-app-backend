@@ -11,13 +11,13 @@ export class CompanyController {
   constructor(private company: CompanyService) {}
 
   @Get()
-  getMyCompany(@GetUser() admin: User & { company: Company }) {
+  getMyCompany(@GetUser() admin: User & { ownedCompany: Company }) {
     return this.company.getMyCompany(admin);
   }
 
   @Put()
   updateCompany(
-    @GetUser() admin: User & { company: Company },
+    @GetUser() admin: User & { ownedCompany: Company },
     @Body() dto: CompanyDTO,
   ) {
     return this.company.updateCompany(dto, admin);

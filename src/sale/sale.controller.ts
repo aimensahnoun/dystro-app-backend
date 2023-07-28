@@ -16,14 +16,22 @@ export class SaleController {
 
   @Post()
   createSale(
-    @GetUser() user: User & { company: Company },
+    @GetUser()
+    user: User & { company: Company } & {
+      ownedCompany: Company;
+    },
     @Body() dto: SaleDto,
   ) {
     return this.saleService.createSale(user, dto);
   }
 
   @Get()
-  getSales(@GetUser() user: User & { company: Company }) {
+  getSales(
+    @GetUser()
+    user: User & { company: Company } & {
+      ownedCompany: Company;
+    },
+  ) {
     return this.saleService.getSales(user);
   }
 }

@@ -7,10 +7,7 @@ import { ClientDto } from './dto/client.dto';
 export class ClientService {
   constructor(private prisma: PrismaService) {}
 
-  async addClient(admin: User & { company: Company }, dto: ClientDto) {
-    if (admin.type !== 'OWNER')
-      throw new UnauthorizedException('You are not an admin');
-
+  async addClient(admin: User & { ownedCompany: Company }, dto: ClientDto) {
     const client = await this.prisma.client.create({
       data: {
         store_name: dto.store_name,
@@ -18,17 +15,19 @@ export class ClientService {
         address: dto.address,
         lat: dto.lat,
         long: dto.long,
-        company_id: admin.company.id,
+        company_id: admin.company_id,
       },
     });
 
     return client;
   }
 
-  async getClients(admin: User & { company: Company }) {
+  async getClients(user: User & { ownedCompany: Company }) {
+    console.log(user);
+
     const clients = await this.prisma.client.findMany({
       where: {
-        company_id: admin.company.id,
+        company_id: user.company_id,
       },
     });
 

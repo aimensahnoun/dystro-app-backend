@@ -1,28 +1,12 @@
 import { Transform, TransformFnParams } from 'class-transformer';
 import {
-  IsEmail,
   IsLatitude,
   IsLongitude,
   IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  isPhoneNumber,
-  IsPhoneNumber,
-  IsString,
   MinLength,
 } from 'class-validator';
 
 export class ClientDto {
-  @IsNotEmpty()
-  @MinLength(2)
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  first_name: string;
-
-  @IsNotEmpty()
-  @MinLength(2)
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  last_name: string;
-
   @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   phone_number: string;
@@ -40,6 +24,7 @@ export class ClientDto {
   @IsNotEmpty()
   long: string;
 
-  @IsOptional()
+  @IsNotEmpty()
+  @MinLength(2)
   store_name: string;
 }
