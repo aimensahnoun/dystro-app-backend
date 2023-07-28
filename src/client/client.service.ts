@@ -23,8 +23,6 @@ export class ClientService {
   }
 
   async getClients(user: User & { ownedCompany: Company }) {
-    console.log(user);
-
     const clients = await this.prisma.client.findMany({
       where: {
         company_id: user.company_id,
